@@ -20,7 +20,7 @@ You may download the FewRel training data (JSON file named train_wiki.json or tr
 
 For HuffPost headlines, Reuters, and Amazon product, you may download the dataset processed by Bao et al.,(2020), from https://people.csail.mit.edu/yujia/files/distributional-signatures/data.zip Then you need to run the scripts named `split_xxx.py` in `PBML/data` to split the data into train, val and test set.
 
-You need to put the source data into the corresponding folder of `PBML/data`
+You need to put the source data into the corresponding folder of `PBML/data/{benchmark_name}`
 
 
 # Candidate label words

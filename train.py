@@ -27,15 +27,14 @@ def fast_tuning(W,support,support_label,query,net,steps,task_lr,N,K):
     T = 3
     att = F.softmax(att/T,-1).detach() # [N,K]
     # att: attention scores α_i^j
-    att = None 
 
     for _ in range(steps):
         logits_for_instances, logits_for_classes = net(support,W) # [N*K, N], [N, N]
         if att is None:
             loss_s2v = net.loss(logits_for_instances, support_label)
-            # loss_v2s = net.loss(logits_for_classes, prototype_label)
+            loss_v2s = net.loss(logits_for_classes, prototype_label)
 
-            loss = loss_s2v  #+ loss_v2s
+            loss = loss_s2v + loss_v2s
 
             grads = autograd.grad(loss,W)
             W = W - task_lr*grads[0]
@@ -49,7 +48,6 @@ def fast_tuning(W,support,support_label,query,net,steps,task_lr,N,K):
             W = W - task_lr*grad[0]
 
     logits_q = net(query, W)[0] # [total_Q, n_way] 
-    # logits_q = F.softmax(F.linear(query, F.normalize(torch.mean(support.view(N,K,-1),1))),-1)
     return logits_q
 
 def train_one_batch(idx,class_names,support0,support_label,query0,query_label,net,steps,task_lr):
@@ -130,10 +128,7 @@ def train_model(model:PBML, B,N,K,Q,data_dir,
 
     for name, param in coder_named_params:
         if name in {'bert_ebd.word_embeddings.weight','bert_ebd.position_embeddings.weight','bert_ebd.token_type_embeddings.weight'}:
-        # if name not in {'real_soft'}:
-            # soft_prompt
-            # print(name)
-            # param.requires_grad = False
+            param.requires_grad = False
             pass
 
 
@@ -141,8 +136,6 @@ def train_model(model:PBML, B,N,K,Q,data_dir,
                     if not any(nd in n for nd in no_decay)],'lr':meta_lr,'weight_decay': weight_decay},
                   {'params': [p for n, p in coder_named_params 
                     if any(nd in n for nd in no_decay)],'lr':meta_lr, 'weight_decay': 0.0},
-                  {'params': [p for n, p in list(model.initializer.named_parameters())],
-                                                        'lr':1, 'weight_decay': 0.0}
                 ]
        
 
@@ -186,19 +179,17 @@ def train_model(model:PBML, B,N,K,Q,data_dir,
         sys.stdout.write('step: {0:4} | loss: {1:2.6f}, accuracy: {2:3.2f}%'.format(it + 1, iter_loss / iter_sample, 100 * iter_right / iter_sample) + '\r')
         sys.stdout.flush()
 
-        torch.save({'state_dict': model.state_dict()}, save_ckpt)
+        if (it+1)%val_step==0:
+            print("")
+            iter_loss, iter_right, iter_sample = 0.0,0.0,0.0
+            acc = test_model(data_loader['val'], model, val_iter, steps,task_lr)
+            print("")
+            model.train()
+            if acc > best_acc:
+                print('Best checkpoint!')
+                torch.save({'state_dict': model.state_dict()}, save_ckpt)
 
-        # if (it+1)%val_step==0:
-        #     print("")
-        #     iter_loss, iter_right, iter_sample = 0.0,0.0,0.0
-        #     acc = test_model(data_loader['val'], model, val_iter, steps,task_lr)
-        #     print("")
-        #     model.train()
-        #     if acc > best_acc:
-        #         print('Best checkpoint!')
-        #         torch.save({'state_dict': model.state_dict()}, save_ckpt)
-
-        #         best_acc = acc
+                best_acc = acc
 
     print("\n####################\n")
     print('Finish training model! Best acc: '+str(best_acc))

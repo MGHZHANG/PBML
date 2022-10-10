@@ -66,8 +66,6 @@ class Initializer(nn.Module):
 
         for key in self.cl2embed.keys():
             self.cl2embed[key] = torch.Tensor(self.cl2embed[key]).cuda()
-        
-        self.miml_trans = nn.Linear(768,768)
 
     def get_embedding(self, class_names):
         # read candidate word embeddings from the class name 
@@ -82,8 +80,7 @@ class Initializer(nn.Module):
         # average pooling
         W = torch.zeros(len(inputs), self.embedding_dim).cuda()
         for idx in range (len(inputs)):
-            # W[idx] = torch.mean(inputs[idx], 0).requires_grad_(True) # [hidden_size] candidates mean pooler
-            W[idx] = self.miml_trans(torch.mean(inputs[idx], 0))
+            W[idx] = torch.mean(inputs[idx], 0).requires_grad_(True) # [hidden_size] candidates mean pooler
             # W[idx] = inputs[idx][0].requires_grad_(True) # [hidden_size] without kg
         if self.k_shot == 1:
             W = F.normalize(W,dim=-1)

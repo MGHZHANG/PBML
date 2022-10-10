@@ -59,7 +59,7 @@ dataset2config = {  "FewRel":  {"taskname":"Relation Classification",
                                 "warmup_step":200
                                },}
 
-benchmark = "Amazon"  # {"FewRel","HuffPost","Reuters","Amazon"}
+benchmark = "FewRel"  # {"FewRel","HuffPost","Reuters","Amazon"}
 taskname = dataset2config[benchmark]['taskname']
 meta_lr = dataset2config[benchmark]['meta_lr']
 task_lr  = dataset2config[benchmark]['task_lr']
@@ -72,14 +72,14 @@ warmup_step = dataset2config[benchmark]['warmup_step']
 
 noise_rate = 0 #  from 0 to 10
 
-N = 9
-K = 5
+N = 5
+K = 1
 Q = 1
 
 Val_iter = 2000
-Val_step = 1000000
+Val_step = 50
 
-save_ckpt = f'./checkpoint/{benchmark}_MAML.pth'
+save_ckpt = f'./checkpoint/{benchmark}_PBML.pth'
 load_ckpt = None
 best_acc = 0.0
 
@@ -104,20 +104,20 @@ start_time=time.time()
 
 pbml=PBML(B,N,K,max_length,data_dir)
 
-# train_model(pbml,B,N,K,Q,data_dir,
-#             meta_lr=meta_lr,
-#             task_lr=task_lr,
-#             weight_decay = weight_decay,
-#             train_iter=Train_iter,
-#             val_iter=Val_iter,
-#             val_step=Val_step, 
-#             steps = Fast_tuning_steps,
-#             save_ckpt = save_ckpt, load_ckpt= load_ckpt,
-#             best_acc = best_acc,
-#             warmup_step = warmup_step
-#             )
+train_model(pbml,B,N,K,Q,data_dir,
+            meta_lr=meta_lr,
+            task_lr=task_lr,
+            weight_decay = weight_decay,
+            train_iter=Train_iter,
+            val_iter=Val_iter,
+            val_step=Val_step, 
+            steps = Fast_tuning_steps,
+            save_ckpt = save_ckpt, load_ckpt= load_ckpt,
+            best_acc = best_acc,
+            warmup_step = warmup_step
+            )
 
-load_ckpt = f'./checkpoint/{benchmark}_MAML.pth'
+load_ckpt = f'./checkpoint/{benchmark}_PBML.pth'
 eval_model(pbml,N,K,Q,eval_iter=10000, steps=Fast_tuning_steps,task_lr=task_lr, noise_rate = 0,file_name=f'./data/{benchmark}/test.json',load_ckpt=load_ckpt)
 
 
