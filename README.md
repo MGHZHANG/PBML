@@ -26,7 +26,7 @@ You need to put the source data into the corresponding folder of `PBML/data`
 # Candidate label words
 
 ### Format
-+ `data/FewRel/P-info.json` provides for each relation, a list of alias, serving as candidate words. 
++ `data/FewRel/P-info.json` provides for each relation, a list of alias, serving as candidate words. (from https://github.com/thunlp/MIML/tree/main/data )
 + For HuffPost, Reuters, and Amazon, `candidate_words.json` should contain candidate words of each class (you can define your own candidate words). 
 + `candidate_ebds.json` contains candidate word embeddings of each class. (you may run `data/word2ebd.py` to obtain candidate embeddings)
 
